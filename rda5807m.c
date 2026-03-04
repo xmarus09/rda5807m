@@ -84,10 +84,12 @@
 #define BIT_R4_AFCD        8
 #define BIT_R4_SOFTMUTE_EN 9
 #define BIT_R4_DE          11
+#define BIT_R4_RDS_FIFO_EN 12
 
-#define BIT_VOL_VOLUME   0
-#define BIT_VOL_SEEKTH   8
-#define BIT_VOL_INT_MODE 15
+#define BIT_VOL_VOLUME       0
+#define BIT_VOL_LNA_PORT_SEL 6
+#define BIT_VOL_SEEKTH       8
+#define BIT_VOL_INT_MODE     15
 
 #define BIT_R7_SOFTBLEND_EN 1
 #define BIT_R7_50M          9
@@ -247,9 +249,9 @@ esp_err_t rda5807m_init(rda5807m_t *dev, rda5807m_clock_freq_t clock_freq)
                                                        BV(BIT_CTRL_ENABLE)                       // Enable chip
                                                       ));
     // De-emphasis = 50us
-    I2C_DEV_CHECK(&dev->i2c_dev, write_register_nolock(dev, REG_R4, BV(BIT_R4_DE)));
-    // Set volume = 0, Seek threshold = ~32 dB SNR, INT_MODE = 1 (?)
-    I2C_DEV_CHECK(&dev->i2c_dev, write_register_nolock(dev, REG_VOL, BV(BIT_VOL_INT_MODE) | (8 << BIT_VOL_SEEKTH)));
+    I2C_DEV_CHECK(&dev->i2c_dev, write_register_nolock(dev, REG_R4, BV(BIT_R4_RDS_FIFO_EN) | BV(BIT_R4_DE)));
+    // Set volume = 0, Seek threshold = ~32 dB SNR, INT_MODE = 0, LNA_PORT_SEL = LNAP
+    I2C_DEV_CHECK(&dev->i2c_dev, write_register_nolock(dev, REG_VOL, (8 << BIT_VOL_SEEKTH) | (2 << BIT_VOL_LNA_PORT_SEL)));
 
     I2C_DEV_GIVE_MUTEX(&dev->i2c_dev);
 
