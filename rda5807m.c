@@ -272,7 +272,7 @@ esp_err_t rda5807m_get_state(rda5807m_t *dev, rda5807m_state_t *state)
     state->frequency = (r[0] & MASK_RA_READCHAN) * spacings[dev->spacing] + band_limits[dev->band].lower;
     state->stereo = (r[0] & BV(BIT_RA_ST)) != 0;
     state->station = (r[1] & BV(BIT_RB_FM_ST)) != 0;
-    state->rds_ready = (r[0] & BV(BIT_RA_RDSR)) != 0;
+    state->rds_ready = ((r[0] & BV(BIT_RA_RDSR)) != 0) && ((r[0] & BV(BIT_RA_RDSS)) != 0);
     state->rssi = r[1] >> BIT_RB_RSSI;
 
     memcpy(state->rds, &r[2], 8);
