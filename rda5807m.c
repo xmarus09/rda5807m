@@ -270,15 +270,15 @@ esp_err_t rda5807m_get_state(rda5807m_t *dev, rda5807m_state_t *state)
     CHECK(read_registers_bulk(dev, r, 6));
     CHECK(read_register(dev, REG_CTRL, &ctrl));
 
-    if (r[0] & BIT_RA_SF) state->seek_status = RDA5807M_SEEK_FAILED;
-    else if (r[0] & BIT_RA_STC) state->seek_status = RDA5807M_SEEK_COMPLETE;
-    else if (ctrl & BIT_CTRL_SEEK) state->seek_status = RDA5807M_SEEK_STARTED;
+    if (r[0] & BV(BIT_RA_SF)) state->seek_status = RDA5807M_SEEK_FAILED;
+    else if (r[0] & BV(BIT_RA_STC)) state->seek_status = RDA5807M_SEEK_COMPLETE;
+    else if (ctrl & BV(BIT_CTRL_SEEK)) state->seek_status = RDA5807M_SEEK_STARTED;
     else state->seek_status = RDA5807M_SEEK_NONE;
 
     state->frequency = (r[0] & MASK_RA_READCHAN) * spacings[dev->spacing] + band_limits[dev->band].lower;
-    state->stereo = (r[0] & BIT_RA_ST) != 0;
-    state->station = (r[1] & BIT_RB_FM_ST) != 0;
-    state->rds_ready = (r[0] & BIT_RA_RDSR) != 0;
+    state->stereo = (r[0] & BV(BIT_RA_ST)) != 0;
+    state->station = (r[1] & BV(BIT_RB_FM_ST)) != 0;
+    state->rds_ready = (r[0] & BV(BIT_RA_RDSR)) != 0;
     state->rssi = r[1] >> BIT_RB_RSSI;
 
     memcpy(state->rds, &r[2], 8);
