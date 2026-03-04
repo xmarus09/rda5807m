@@ -57,8 +57,8 @@
 #define REG_RB      0x0b
 #define REG_RDSA    0x0c
 #define REG_RDSB    0x0d
-#define REG_RDSC    0x0c
-#define REG_RDSD    0x0d
+#define REG_RDSC    0x0e
+#define REG_RDSD    0x0f
 
 // Bits
 #define BIT_CTRL_ENABLE      0
@@ -197,19 +197,6 @@ static esp_err_t update_register(rda5807m_t *dev, uint8_t reg, uint16_t mask, ui
     return ESP_OK;
 }
 
-static esp_err_t read_registers_bulk(rda5807m_t *dev, uint16_t *val, uint8_t count)
-{
-    I2C_DEV_TAKE_MUTEX(&dev->i2c_dev);
-    dev->i2c_dev.addr = I2C_ADDR_SEQ;
-    I2C_DEV_CHECK(&dev->i2c_dev, i2c_dev_read(&dev->i2c_dev, NULL, 0, val, count * 2));
-    I2C_DEV_GIVE_MUTEX(&dev->i2c_dev);
-
-    for (uint8_t i = 0; i < count; i++)
-        val[i] = (val[i] >> 8) | (val[i] << 8);
-
-    return ESP_OK;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 
 esp_err_t rda5807m_init_desc(rda5807m_t *dev, i2c_port_t port, gpio_num_t sda_gpio, gpio_num_t scl_gpio)
@@ -267,10 +254,15 @@ esp_err_t rda5807m_get_state(rda5807m_t *dev, rda5807m_state_t *state)
 {
     CHECK_ARG(dev && state);
 
-    uint16_t r[6];
     uint16_t ctrl;
-    CHECK(read_registers_bulk(dev, r, 6));
+    uint16_t r[6];
     CHECK(read_register(dev, REG_CTRL, &ctrl));
+    CHECK(read_register(dev, REG_RA,   &r[0]));
+    CHECK(read_register(dev, REG_RB,   &r[1]));
+    CHECK(read_register(dev, REG_RDSA, &r[2]));
+    CHECK(read_register(dev, REG_RDSB, &r[3]));
+    CHECK(read_register(dev, REG_RDSC, &r[4]));
+    CHECK(read_register(dev, REG_RDSD, &r[5]));
 
     if (r[0] & BV(BIT_RA_SF)) state->seek_status = RDA5807M_SEEK_FAILED;
     else if (r[0] & BV(BIT_RA_STC)) state->seek_status = RDA5807M_SEEK_COMPLETE;
@@ -463,7 +455,7 @@ esp_err_t rda5807m_get_frequency_khz(rda5807m_t *dev, uint32_t *frequency)
     CHECK_ARG(dev && frequency);
 
     uint16_t chan;
-    CHECK(read_registers_bulk(dev, &chan, 1));
+    CHECK(read_register(dev, REG_RA, &chan));
     chan &= MASK_RA_READCHAN;
 
     *frequency = chan * spacings[dev->spacing] + band_limits[dev->band].lower;
