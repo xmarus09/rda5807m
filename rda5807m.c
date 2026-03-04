@@ -450,7 +450,7 @@ esp_err_t rda5807m_set_channel_spacing(rda5807m_t *dev, rda5807m_channel_spacing
 {
     CHECK_ARG(dev && spacing <= RDA5807M_CHAN_SPACE_25);
 
-    CHECK(update_register(dev, REG_CTRL, MASK_CHAN_SPACE, spacing));
+    CHECK(update_register(dev, REG_CHAN, MASK_CHAN_SPACE, spacing));
     dev->spacing = spacing;
 
     return ESP_OK;
